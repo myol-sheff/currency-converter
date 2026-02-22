@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Currency Converter</title>
+  <style>
+    
+    /* mohammad: i just centered everything it looks cleaner*/
+    body {
+      background-color: lightblue;
+      font-family: Arial;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      color: darkblue;
+      /* mohammad: made it dark blue because light blue was hard to read on light blue lol */
+    }
+
+    /* zack: i added a box so it doesnt look so plain */
+    .box {
+      background-color: white;
+      width: 350px;
+      margin: 0 auto;
+      padding: 30px;
+      border: 2px solid gray;
+      border-radius: 10px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
+      font-size: 16px;
+      /* mohammad: made font bigger because i couldnt read it before */
+    }
+
+    button {
+      background-color: darkblue;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+      /* suhail: i rounded the button corners */
+    }
+
+    button:hover {
+      background-color: blue;
+      /* mohammad: hover effect so u know its clickable */
+    }
+
+    /* mohammad: result box styling */
+    #result {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      color: green;
+    }
+
+    /* iad: added a small note at the bottom */
+    .footer {
+      margin-top: 30px;
+      font-size: 12px;
+      color: gray;
+    }
+
+    .heading-container{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .currency-convert-clipart {
+      width: 50px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="heading-container">
+    <img src="1f4b1_flat.webp" class="currency-convert-clipart"> 
+  <!-- mohammad: added the emoji to make it look cool -->
+    <h1>Currency Converter</h1>
+</div>
+
+  <div class="box">
+
+    <!-- mohammad: amount input -->
+    <label>Amount:</label>
+    <input type="number" id="amount" placeholder="Enter amount" value="1" />
+
+    <!-- mohammad: from currency -->
+    <label>From:</label>
+    <select id="fromCurrency">
+      <option value="USD">USD - US Dollar</option>
+      <option value="EUR">EUR - Euro</option>
+      <option value="GBP">GBP - British Pound</option>
+      <option value="JPY">JPY - Japanese Yen</option>
+      <option value="CAD">CAD - Canadian Dollar</option>
+      <option value="AUD">AUD - Australian Dollar</option>
+      <option value="INR">INR - Indian Rupee</option>
+      <option value="SAR">SAR - Saudi Riyal</option>
+      <option value="AED">AED - UAE Dirham</option>
+      <!-- zack: i added more currencies -->
+    </select>
+
+    <!-- mohammad: to currency -->
+    <label>To:</label>
+    <select id="toCurrency">
+      <option value="EUR">EUR - Euro</option>
+      <option value="USD">USD - US Dollar</option>
+      <option value="GBP">GBP - British Pound</option>
+      <option value="JPY">JPY - Japanese Yen</option>
+      <option value="CAD">CAD - Canadian Dollar</option>
+      <option value="AUD">AUD - Australian Dollar</option>
+      <option value="INR">INR - Indian Rupee</option>
+      <option value="SAR">SAR - Saudi Riyal</option>
+      <option value="AED">AED - UAE Dirham</option>
+      <!-- zack: same here -->
+    </select>
+
+    <!-- mohammad: the button calls the convert function i wrote below -->
+    <button onclick="convert()">Convert</button>
+
+    <!-- mohammad: this shows if we got live rates or not -->
+    <div id="rateStatus" style="font-size:13px; margin-top:10px; color:gray;">
+      loading rates...
+    </div>
+
+    <div id="result">
+      <!-- result will show here -->
+      <!-- suhail: mohammad told me to add this comment so we remember -->
+    </div>
+
+  </div>
+
+  <!-- iad: footer with our names -->
+  <div class="footer">
+    Made by: Mohammad, Zack, Suhail, Iad &nbsp;|&nbsp; class group project
+  </div>
+
+  <script>
+    
+    // mohammad: we need to get rates from the python server
+    // mohammad: so now instead of hardcoded rates we fetch them
+
+    // mohammad: backup rates just in case python server isnt running
+    var rates = {
+      USD: 1,
+      EUR: 0.92,
+      GBP: 0.79,
+      JPY: 149.5,
+      CAD: 1.36,
+      AUD: 1.53,
+      INR: 83.1,
+      SAR: 3.75,
+      AED: 3.67
+    }
+
+    // mohammad: this asks the python server for live rates when the page loads
+    // mohammad: fetch is like asking the server "hey give me the rates"
+    fetch("/rates")
+      .then(function(response) {
+        return response.json() // mohammad: convert it to something javascript understands
+      })
+      .then(function(data) {
+        rates = data // mohammad: replace backup rates with live ones
+        document.getElementById("rateStatus").innerText = "✅ using live rates from python server"
+        document.getElementById("rateStatus").style.color = "green"
+        console.log("got live rates!!", rates) // mohammad: for debugging
+      })
+      .catch(function(error) {
+        // mohammad: if server isnt running use backup rates
+        // zack: this happens if u open the html file directly without running python
+        document.getElementById("rateStatus").innerText = "⚠️ python server not running, using backup rates"
+        document.getElementById("rateStatus").style.color = "orange"
+        console.log("error:", error)
+      })
+
+    // mohammad: this is the main function, it does the conversion
+    function convert() {
+
+      // get the values from the page
+      var amount = document.getElementById("amount").value
+      var from = document.getElementById("fromCurrency").value
+      var to = document.getElementById("toCurrency").value
+
+      // mohammad: check if amount is empty or zero
+      if (amount == "" || amount <= 0) {
+        document.getElementById("result").innerText = "please enter a valid amount!!"
+        document.getElementById("result").style.color = "red"
+        // suhail: i changed the color to red for errors, looks better
+        return // mohammad: stop the function if invalid
+      }
+
+      // mohammad: the formula -- first convert to USD then to target currency
+      var inUSD = amount / rates[from]
+      var finalResult = inUSD * rates[to]
+
+      // mohammad: round to 2 decimal places
+      finalResult = finalResult.toFixed(2)
+
+      // show the result
+      document.getElementById("result").innerText = amount + " " + from + " = " + finalResult + " " + to
+      document.getElementById("result").style.color = "green"
+
+    }
+
+    // mohammad: also convert when user presses enter key
+    document.addEventListener("keydown", function(event) {
+      if (event.key == "Enter") {
+        convert()
+      }
+    })
+
+
+
+  </script>
+  
+</body>
+</html>
